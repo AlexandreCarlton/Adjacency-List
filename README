@@ -1,0 +1,5 @@
+An implementation of an Adjacency List in Python.
+
+The underlying structure of this representation is that of a dictionary, where each key is a vertex that points to a list of adjacent vertices as its value.
+
+Some methods are given (such as a BFS traversal) with more to come.

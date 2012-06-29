@@ -16,7 +16,7 @@ class Adjacency_List(object):
         
         self.adj_list = {}
         self.edge_list = edge_list
-        self.weight = {} #weights[(a,b)] -> int
+        self.weight = {} #weight[(a,b)] -> int
 
         self.directed = directed
         self.weighted = weighted
@@ -48,14 +48,17 @@ class Adjacency_List(object):
 ###        print self.adj_list        
 
 
-
+    ###################
+    # Special methods #
+    ###################
 
     def __str__(self):
         '''String representation of the Adjacency List'''
         if self.weighted:
             return '\n'.join(
                 ['%s:\t%s' % (vertex, ', '.join(
-                ['%s: %s' % (joined_vertex, self.weight[(vertex, joined_vertex)]) for joined_vertex in joined_vertices]))
+                    ['%s: %s' % (joined_vertex, self.weight[(vertex, joined_vertex)]) 
+                     for joined_vertex in joined_vertices]))
                  for vertex, joined_vertices in self.adj_list.iteritems()])
     
         return '\n'.join(
@@ -64,8 +67,12 @@ class Adjacency_List(object):
     
     def __repr__(self):
         '''"Official" string representation of the Adjacency List'''
-        return str(self.adj_list)
+        return str(self.adj_list) + (('\n' + str(self.weight)) if self.weighted else '') 
 
+
+    ####################
+    # Accessor methods #
+    ####################
 
     def is_weighted(self):
         '''Returns True if the edges of the graph are weighted; False otherwise.'''
@@ -74,6 +81,18 @@ class Adjacency_List(object):
     def is_directed(self):
         '''Returns True if the graph is directed; False otherwise.'''
         return self.directed
+
+    def edge_list(self):
+        '''Returns a copy of the original list of tuples fed in.'''
+        return self.edge_list[:]
+
+    def weight(a, b):
+        '''Returns the weight of a given edge if the graph is weighted.'''
+        if not self.weighted:
+            raise ValueError("Graph is not weighted.")
+        return self.weight[(a,b)]
+
+
 
     ########################
     # Traversal Algorithms #
@@ -132,5 +151,3 @@ class Adjacency_List(object):
                     stack.append(joined_vertex)
         
         return DFS
-
-
