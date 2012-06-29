@@ -14,12 +14,14 @@ class Adjacency_List(object):
         if not isinstance(weighted, bool):
             raise TypeError("Weighted must be a boolean value.")
         
-        self.adj_list = {}
-        self.edge_list = edge_list
-        self.weight = {} #weight[(a,b)] -> int
-
         self.directed = directed
         self.weighted = weighted
+        
+        self.adj_list = {}
+        self.edge_list = edge_list
+        if self.weighted:
+            self.weight = {} #weight[(a,b)] -> int
+
         
         #Could probably make an add_edge(A,B) or something to make this easier.               
         for edge in edge_list:
@@ -53,14 +55,11 @@ class Adjacency_List(object):
 
     def __str__(self):
         '''String representation of the Adjacency List'''
-        if self.weighted:
-            return '\n'.join(
-                ['%s:\t%s' % (vertex, ', '.join(
-                    ['%s: %s' % (joined_vertex, self.weight[(vertex, joined_vertex)]) 
-                     for joined_vertex in joined_vertices]))
-                 for vertex, joined_vertices in self.adj_list.iteritems()])
-    
         return '\n'.join(
+            ['%s:\t%s' % (vertex, ', '.join(
+                ['%s: %s' % (joined_vertex, self.weight[(vertex, joined_vertex)]) 
+                 for joined_vertex in joined_vertices]))
+            for vertex, joined_vertices in self.adj_list.iteritems()]) if self.weighted else '\n'.join(
             ['%s:\t%s' % (vertex, ', '.join(joined_vertices))
              for vertex, joined_vertices in self.adj_list.iteritems()])
     
@@ -84,6 +83,12 @@ class Adjacency_List(object):
     def edge_list(self):
         '''Returns a copy of the original list of tuples fed in.'''
         return self.edge_list[:]
+    
+    def num_edges(self):
+        return len(self.edge_list)
+
+    def num_vertices(self):
+        return len(self.adj_list.keys())
 
     def weight(a, b):
         '''Returns the weight of a given edge if the graph is weighted.'''
@@ -115,6 +120,8 @@ class Adjacency_List(object):
         while len(deq):
             vertex = deq.pop() if search_type is 'DFS' else deq.popleft()
             XFS.append(vertex)
+
+            #Grab each unmarked adjacent vertex and shove it into the deque
             for joined_vertex in self.adj_list[vertex]:
                 if not marked[joined_vertex]:
                     marked[joined_vertex] = True
@@ -132,3 +139,41 @@ class Adjacency_List(object):
         '''Returns a traversal of the graph via the Depth-first search algorithm.
         If no root is given then the first node in the graph is chosen.'''
         return self._XFS('DFS', root)
+
+
+    ################
+    # Minimum paths#
+    ###############
+
+    def Floyd_Warshall(self):
+        '''Returns a dictionary where each pair a,b returns the minimum path of each distance'''
+        if not self.weighted:
+            raise ValueError("Graph must be weighted in order to execute algorithm.")
+        
+        path = {}
+        vertices = self.adj_list.keys()
+        #Initialising path
+        for v1 in vertices:
+            for v2 in vertices:
+                if v1 is v2:
+                    path[(v1,v2)] = 0
+                elif (v1, v2) in self.weight.keys():
+                    path[(v1,v2)] = self.weight[(v1,v2)]
+                else:
+                    path[(v1,v2)] = float("inf")
+        
+###        path = dict([ ( (v1,v2), 0 if v1 is v2 else self.weight[(v1,v2)] if (v1,v2) in self.weight.keys() else float('inf')) 
+###                     for v1 in vertices
+###                     for v2 in vertices])
+    
+        for k in vertices:
+            for i in vertices:
+                for j in vertices:
+                    path[(i,j)] = min(path[(i,j)], path[(i,k)]+path[(k,j)])
+###        path = dict([( (i,j), min(path[(i,j)], path[(i,k)]+path[(k,j)]))
+###                      for k in vertices
+###                      for i in vertices
+###                      for j in vertices])
+
+        return path
+
