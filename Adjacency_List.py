@@ -9,36 +9,42 @@ class Adjacency_List(object):
     Includes algorithms such as BFS, DFS, etc.'''
 
     def __init__(self, edge_list, directed=False, weighted=False):#edge_list being a list of tuples (eg. (A, B, 2))
-        self.adj_list = {}
         if not isinstance(directed, bool):
             raise TypeError("Directed must be a boolean value.")
         if not isinstance(weighted, bool):
             raise TypeError("Weighted mut be a boolean value.")
+        
+        self.adj_list = {}
+        self.edge_list = edge_list
+        self.weight = {} #weights[(a,b)] -> int
+
         self.directed = directed
         self.weighted = weighted
         
         #Could probably make an add_edge(A,B) or something to make this easier.               
         for edge in edge_list:
-            if self.weighted:
-                if len(edge) is not 3:
-                    raise ValueError("Only two vertices and an edge per line.")
-                v1, v2 = edge[:2]
-                weight = int(edge[2])
-            else:
-                if len(edge) is not 2:
-                    raise ValueError("Only two vertices per line.")
-                v1, v2 = edge
+            if self.weighted and len(edge) is not 3:
+                raise ValueError("Only two vertices and an edge per line.")
+            if not self.weighted and len(edge) is not 2:
+                raise ValueError("Only two vertices per line.")
+
+            v1, v2 = edge[:2]
 
             if v1 in self.adj_list.keys():
-                self.adj_list[v1].append((v2, weight) if self.weighted else v2)
+                self.adj_list[v1].append(v2)
             else:
-                self.adj_list[v1] = [(v2, weight) if self.weighted else v2]
+                self.adj_list[v1] = [v2]
+            if self.weighted:
+                self.weight[(v1,v2)] = int(edge[2])
+            
 
             if not self.directed:
                 if v2 in self.adj_list.keys():
-                    self.adj_list[v2].append((v1, weight) if self.weighted else v1)
+                    self.adj_list[v2].append(v1)
                 else:
-                    self.adj_list[v2] = [(v1, weight) if self.weighted else v1]
+                    self.adj_list[v2] = [v1]
+                if self.weighted:
+                    self.weight[(v2,v1)] = int(edge[2])
 ###        print self.adj_list        
 
 
@@ -49,7 +55,7 @@ class Adjacency_List(object):
         if self.weighted:
             return '\n'.join(
                 ['%s:\t%s' % (vertex, ', '.join(
-                ['%s: %s' % (joined_vertex, weight) for joined_vertex, weight in joined_vertices]))
+                ['%s: %s' % (joined_vertex, self.weight[(vertex, joined_vertex)]) for joined_vertex in joined_vertices]))
                  for vertex, joined_vertices in self.adj_list.iteritems()])
     
         return '\n'.join(
@@ -92,13 +98,9 @@ class Adjacency_List(object):
         BFS = []
         while not queue.empty():
             vertex = queue.get()
-            if self.weighted: 
-                vertex = vertex[0] 
             BFS.append(vertex)
             
             for joined_vertex in self.adj_list[vertex]:
-                if self.weighted:
-                    joined_vertex = joined_vertex[0]
                 if not marked[joined_vertex]:
                     marked[joined_vertex] = True
                     queue.put(joined_vertex)
@@ -123,12 +125,8 @@ class Adjacency_List(object):
         DFS = []
         while len(stack):
             vertex = stack.pop()
-            if self.weighted:
-                vertex = vertex[0]
             DFS.append(vertex)
             for joined_vertex in self.adj_list[vertex]:
-                if self.weighted:
-                    joined_vertex = joined_vertex[0]
                 if not marked[joined_vertex]:
                     marked[joined_vertex] = True
                     stack.append(joined_vertex)
