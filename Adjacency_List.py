@@ -150,30 +150,17 @@ class Adjacency_List(object):
         if not self.weighted:
             raise ValueError("Graph must be weighted in order to execute algorithm.")
         
-        path = {}
-        vertices = self.adj_list.keys()
-        #Initialising path
-        for v1 in vertices:
-            for v2 in vertices:
-                if v1 is v2:
-                    path[(v1,v2)] = 0
-                elif (v1, v2) in self.weight.keys():
-                    path[(v1,v2)] = self.weight[(v1,v2)]
-                else:
-                    path[(v1,v2)] = float("inf")
-        
-###        path = dict([ ( (v1,v2), 0 if v1 is v2 else self.weight[(v1,v2)] if (v1,v2) in self.weight.keys() else float('inf')) 
-###                     for v1 in vertices
-###                     for v2 in vertices])
+        vertices = self.adj_list.keys() 
+        path = dict([ ( (v1,v2), 0 if v1 is v2 
+                       else self.weight[(v1,v2)] if (v1,v2) in self.weight.keys() 
+                       else float('inf')) 
+                     for v1 in vertices
+                     for v2 in vertices])
     
         for k in vertices:
             for i in vertices:
                 for j in vertices:
                     path[(i,j)] = min(path[(i,j)], path[(i,k)]+path[(k,j)])
-###        path = dict([( (i,j), min(path[(i,j)], path[(i,k)]+path[(k,j)]))
-###                      for k in vertices
-###                      for i in vertices
-###                      for j in vertices])
 
         return path
 
