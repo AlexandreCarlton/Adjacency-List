@@ -34,16 +34,15 @@ class Adjacency_List(object):
         #What if we made self._weighted a dictionary of dictionaries
         #instead of d[(a,b)], you'd have d[a][b]
         #So it's more of an adjacency matrix, and if there is no edge then it returns None.
-        if self._weighted:
-            self._weight = {} #weight[(a,b)] -> int
+        self._weight = {} #weight[(a,b)] -> int
         
 
         #Could probably make an add_edge(A,B) or something to make this easier.               
         for edge in edges:
             if self._weighted and len(edge) != 3:
-                raise ValueError("Only two vertices and an edge per tuple.")
+                raise ValueError('Only two vertices and an edge per tuple.')
             if not self._weighted and len(edge) != 2:
-                raise ValueError("Only two vertices per tuple.")
+                raise ValueError('Only two vertices per tuple.')
 
             v1, v2 = edge[:2]
             self._adjacency_list[v1].append(v2)
@@ -178,9 +177,7 @@ class Adjacency_List(object):
 
     def Dijkstra(self, root=None, target=None):
         ''' Description goes here '''
-        if not self._weighted:
-            raise ValueError('Graph must be weighted in order to execute algorithm.')
-        
+
         vertices = self._adjacency_list.keys()
         dist = { vertex : float('inf') for vertex in vertices }
         previous = { vertex : None for vertex in vertices }
@@ -190,7 +187,14 @@ class Adjacency_List(object):
 
         while len(vertices):
             vertex = min(vertices, key = lambda v: dist[v]) #Grabs key with smallest value
-###            if target == vertex: return dist
+            if target == vertex:
+                curr_vertex = target
+                min_path = deque()
+                while previous[curr_vertex]:
+                    min_path.appendleft(curr_vertex)
+                    curr_vertex = previous[curr_vertex]
+                min_path.appendleft(root)
+                return list(min_path)
             
             if dist[vertex] == float('inf'):
                 break;
@@ -208,3 +212,5 @@ class Adjacency_List(object):
                     vertices[i], vertices[i-1] = vertices[i-1], vertices[i]
 
         return dist
+        if not self._weighted:
+            raise ValueError('Graph must be weighted in order to execute algorithm.')
