@@ -47,15 +47,12 @@ class Adjacency_List(object):
 
             v1, v2 = edge[:2]
             self._adjacency_list[v1].append(v2)
-            if self._weighted:
-                self._weight[(v1,v2)] = int(edge[2])
+            self._weight[(v1,v2)] = int(edge[2]) if self._weighted else 1 #An unweighted graph has edges of weight 1.
             
             #v1 is adjacent to v2 as well if the graph is not directed
             if not self._directed:
                 self._adjacency_list[v2].append(v1)
-                if self._weighted:
-                    self._weight[(v2,v1)] = int(edge[2])
-
+                self._weight[(v2,v1)] = int(edge[2]) if self._weighted else 1 
 
     ###################
     # Special methods #
