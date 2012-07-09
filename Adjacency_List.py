@@ -1,7 +1,7 @@
 from collections import deque
 
 def vertices_and_edges(file):
-    '''Convert text file into a list of vertices and edges
+    '''Helper function to convert text file into a list of vertices and edges
     Assumes file is of format:
     A
     B
@@ -11,7 +11,6 @@ def vertices_and_edges(file):
     Listing vertices, and then the edges (with weights if the graph is weighted).'''
     vertices = [vertex.strip() for vertex in open(file, 'rU') if len(vertex.strip().split()) == 1]
     edges = [pair.strip().split() for pair in open(file, 'rU') if len(pair.strip().split()) in (2,3)]
-    print vertices
     return vertices, edges
 
 
@@ -46,10 +45,9 @@ class Adjacency_List(object):
 
             v1, v2 = edge[:2]
             self._adjacency_list[v1].append(v2)
-            self._weight[(v1,v2)] = int(edge[2]) if self._weighted else 1 #An unweighted graph has edges of weight 1.
+            self._weight[(v1,v2)] = int(edge[2]) if self._weighted else 1       # An unweighted graph has edges of weight 1.
             
-            #v1 is adjacent to v2 as well if the graph is not directed
-            if not self._directed:
+            if not self._directed:                                              # v1 is adjacent to v2 as well if the graph is not directed
                 self._adjacency_list[v2].append(v1)
                 self._weight[(v2,v1)] = int(edge[2]) if self._weighted else 1 
 
@@ -59,13 +57,15 @@ class Adjacency_List(object):
 
     def __str__(self):
         '''String representation of the Adjacency List'''
-        return '\n'.join(
-            ['%s:\t%s' % (vertex, ', '.join(
-                ['%s: %s' % (joined_vertex, self._weight[(vertex, joined_vertex)]) 
-                 for joined_vertex in joined_vertices]))
-            for vertex, joined_vertices in self._adjacency_list.iteritems()]) if self._weighted else '\n'.join(
-            ['%s:\t%s' % (vertex, ', '.join(joined_vertices))
-             for vertex, joined_vertices in self._adjacency_list.iteritems()])
+        if self._weighted:
+            return '\n'.join(
+                ['%s:\t%s' % (vertex, ', '.join(                                        # Each vertex in the adjacency list
+                    ['%s: %s' % (joined_vertex, self._weight[(vertex, joined_vertex)])  # Each joined vertex and its weight
+                     for joined_vertex in joined_vertices]))
+                for vertex, joined_vertices in self._adjacency_list.iteritems()])
+        else:
+            return '\n'.join(['%s:\t%s' % (vertex, ', '.join(joined_vertices))
+                       for vertex, joined_vertices in self._adjacency_list.iteritems()])
     
     def __repr__(self):
         '''"Official" string representation of the Adjacency List'''
@@ -102,10 +102,8 @@ class Adjacency_List(object):
         return len(self._edge_list)
 
     def weight(v1, v2):
-        '''Returns the weight of an edge between two given vertices (if the graph is weighted).'''
-        if not self._weighted:
-            raise ValueError("Graph is not weighted.")
-        return self._weight[(v1,v2)]
+        '''Returns the weight of an edge between two given vertices.'''
+        return self._weight[(v1,v2)] if (v1,v2) in self._weight.keys() else None
 
 
     ########################
@@ -117,7 +115,7 @@ class Adjacency_List(object):
         if not isinstance(is_DFS, bool):
             raise ValueError('Must specify whether search type is DFS or not (hence BFS).')
         deq = deque()
-        marked = { vertex : False for vertex in self._adjacency_list.iterkeys() }
+        marked = { vertex : False for vertex in self._adjacency_list.iterkeys() }           # Make all vertices unmarked.
 
         root = root or self._adjacency_list.keys()[0]
         deq.append(root)
@@ -125,14 +123,13 @@ class Adjacency_List(object):
         XFS = []
 
         while len(deq):
-            vertex = deq.pop() if is_DFS else deq.popleft()
+            vertex = deq.pop() if is_DFS else deq.popleft()                                 # Pop off the stack if DFS, or dequeue it if BFS.
             XFS.append(vertex)
 
-            #Grab each unmarked adjacent vertex and shove it into the deque
-            for adjacent_vertex in self._adjacency_list[vertex]:
+            for adjacent_vertex in self._adjacency_list[vertex]:                            # Grab each unmarked adjacent vertex, 
                 if not marked[adjacent_vertex]:
-                    marked[adjacent_vertex] = True
-                    deq.append(adjacent_vertex)
+                    marked[adjacent_vertex] = True                                          # mark it
+                    deq.append(adjacent_vertex)                                             # and shove it into the deque
     
         return XFS
 
@@ -154,16 +151,14 @@ class Adjacency_List(object):
 
     def Floyd_Warshall(self):
         '''Returns a dictionary where each pair (v1,v2) returns the length of the smallest path between them.'''
-        if not self._weighted:
-            raise ValueError("Graph must be weighted in order to execute algorithm.")
-        if any((weight < 0 for weight in self._weight.itervalues())):
+        if any((weight < 0 for weight in self._weight.itervalues())):               # Check if any edges have negative values
             raise ValueError("Graph cannot have negative weights.")
 
 
         vertices = self._adjacency_list.keys() 
-        path = { (v1,v2): 0 if v1 is v2 
-                       else self._weight[(v1,v2)] if (v1,v2) in self._weight.keys() 
-                       else float('inf') 
+        path = { (v1,v2): 0 if v1 is v2
+                            else self._weight[(v1,v2)] if (v1,v2) in self._weight.keys()
+                            else float('inf') 
                      for v1 in vertices
                      for v2 in vertices }
     
@@ -176,41 +171,39 @@ class Adjacency_List(object):
     
 
     def Dijkstra(self, root=None, target=None):
-        ''' Description goes here '''
+        '''Find the shortest path between the root and a target.'''
 
         vertices = self._adjacency_list.keys()
-        dist = { vertex : float('inf') for vertex in vertices }
-        previous = { vertex : None for vertex in vertices }
+        distance = { vertex : float('inf') for vertex in vertices }                     # Dictionary of all distances from the root to each vertex
+        previous = { vertex : None for vertex in vertices }                             # Reference to the previous node in the optimal path from the root
 
         root = root or self._adjacency_list.keys()[0]
-        dist[root] = 0
-
+        distance[root] = 0
+        
         while len(vertices):
-            vertex = min(vertices, key = lambda v: dist[v]) #Grabs key with smallest value
-            if target == vertex:
-                curr_vertex = target
+            vertex = min(vertices, key = lambda v: distance[v])                         # Grab the vertex with the smallest distance to the source.
+            if target == vertex:                                                        # If a target was specified then we can determine the optimal path 
+                curr_vertex = target                                                    # between the source and itself.
                 min_path = deque()
-                while previous[curr_vertex]:
-                    min_path.appendleft(curr_vertex)
-                    curr_vertex = previous[curr_vertex]
+                while previous[curr_vertex]:                                            # While the previous vertex in the optimal path exists, 
+                    min_path.appendleft(curr_vertex)                                    # smack it to the front of the path.
+                    curr_vertex = previous[curr_vertex]                                 # Grab the previous vertex of the vertex we just appended.
                 min_path.appendleft(root)
-                return list(min_path)
+                return list(min_path)                                                   #We don't really need a deque, just append and then reverse
             
-            if dist[vertex] == float('inf'):
+            if distance[vertex] == float('inf'):                                        # If all the remaining vertices are detached then we end the algorithm.
                 break;
 
             vertices.remove(vertex)
+            
+            for adjacent_vertex in self._adjacency_list[vertex]:                        # For each adjacent vertex of the current vertex 
+                if adjacent_vertex in vertices:                                         # which hasn't been removed from vertices.
+                    alt = distance[vertex] + self._weight[(vertex, adjacent_vertex)]    # Get the distance of the alternate path from the adjacent to the current vertex.
+                    if alt < distance[adjacent_vertex]:                                 # If this new distance is smaller,
+                        distance[adjacent_vertex] = alt                                 # then set it as the new distance
+                        previous[adjacent_vertex] = vertex                              # and set previous (optimal) vertex of adjacent vertex to be the current vertex.
 
-            for adjacent_vertex in self._adjacency_list[vertex]:
-                alt = dist[vertex] + self._weight[(vertex, adjacent_vertex)]
-                if alt < dist[adjacent_vertex]:
-                    dist[adjacent_vertex] = alt
-                    previous[adjacent_vertex] = vertex
+                        i = vertices.index(adjacent_vertex)                             # Shift adjacent_vertex left in vertices 
+                        vertices[i], vertices[i-1] = vertices[i-1], vertices[i]
 
-                    #Shift adjacent_vertex left
-                    i = vertices.index(adjacent_vertex)
-                    vertices[i], vertices[i-1] = vertices[i-1], vertices[i]
-
-        return dist
-        if not self._weighted:
-            raise ValueError('Graph must be weighted in order to execute algorithm.')
+        return distance
